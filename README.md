@@ -100,7 +100,7 @@ Open the local Gradio URL. The demo uses `openai-community/gpt2-xl` by default, 
 
 Stupidify:
 
-1. Resolves a local model directory or downloads a Hugging Face snapshot.
+1. Resolves a local model directory or downloads only the Hugging Face safetensors/config/tokenizer files it needs (not every framework copy in the repo).
 2. Copies configs/tokenizers/metadata to a new output directory.
 3. Loads each `.safetensors` shard on CPU.
 4. Mutates selected floating-point tensors in memory.

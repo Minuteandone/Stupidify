@@ -3,6 +3,8 @@ from __future__ import annotations
 import gc
 import os
 
+import torch
+
 from .config import DamageConfig
 from .core import stupidify_live_model
 
@@ -26,24 +28,44 @@ def build_demo():
         tokenizer = AutoTokenizer.from_pretrained(DEFAULT_MODEL)
         model = AutoModelForCausalLM.from_pretrained(DEFAULT_MODEL)
         inputs = tokenizer(prompt, return_tensors="pt")
-        generator = dict(max_new_tokens=int(max_new_tokens), do_sample=True, temperature=0.9, top_p=0.95, pad_token_id=tokenizer.eos_token_id)
+
+        generator = dict(
+            max_new_tokens=int(max_new_tokens),
+            do_sample=True,
+            temperature=0.9,
+            top_p=0.95,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+        torch.manual_seed(int(seed))
         original_out = model.generate(**inputs, **generator)
         original_text = tokenizer.decode(original_out[0], skip_special_tokens=True)
+
         notes.append("Stupidifying the loaded model in memory…")
         cfg = DamageConfig(method=method, severity=float(severity), bits=int(bits), seed=int(seed))
         stats = stupidify_live_model(model, cfg, progress=notes.append)
+
+        torch.manual_seed(int(seed))
         damaged_out = model.generate(**inputs, **generator)
         damaged_text = tokenizer.decode(damaged_out[0], skip_special_tokens=True)
         notes.append(f"Touched {stats.tensors_changed} tensors. Reloading is the reset button.")
+
         del model
         gc.collect()
         return original_text, damaged_text, "\n".join(notes)
 
     with gr.Blocks(title="Stupidify GPT-2 XL") as demo:
-        gr.Markdown("# Stupidify 🧠🔨\nCompare normal **GPT-2 XL** with the same loaded model after deliberate weight damage — no training involved. The model is mutated in memory, so the demo doesn't need a second checkpoint copy.")
+        gr.Markdown(
+            "# Stupidify 🧠🔨\n"
+            "Compare normal **GPT-2 XL** with the same loaded model after deliberate weight damage — no training involved. "
+            "The model is mutated in memory, so the demo doesn't need a second checkpoint copy."
+        )
         prompt = gr.Textbox(label="Prompt", value="The weirdest thing about computers is")
         with gr.Row():
-            method = gr.Dropdown(["goblin", "zero", "noise", "signflip", "bitcrush", "shuffle"], value="goblin", label="Damage method")
+            method = gr.Dropdown(
+                ["goblin", "zero", "noise", "signflip", "bitcrush", "shuffle"],
+                value="goblin",
+                label="Damage method",
+            )
             severity = gr.Slider(0, 0.75, value=0.10, step=0.01, label="Severity")
             bits = gr.Slider(2, 8, value=4, step=1, label="Bit depth")
             seed = gr.Number(value=42, precision=0, label="Seed")

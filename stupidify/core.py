@@ -28,7 +28,23 @@ def resolve_model(model: str, cache_dir: str | None = None) -> Path:
         if not local.is_dir():
             raise ValueError("model must be a Hugging Face repo id or a local model directory")
         return local.resolve()
-    downloaded = snapshot_download(repo_id=model, cache_dir=cache_dir)
+    downloaded = snapshot_download(
+        repo_id=model,
+        cache_dir=cache_dir,
+        allow_patterns=[
+            "*.safetensors",
+            "*.json",
+            "*.txt",
+            "*.model",
+            "*.tiktoken",
+            "*.py",
+            "*.jinja",
+            "*.yaml",
+            "*.yml",
+            "README*",
+            "LICENSE*",
+        ],
+    )
     return Path(downloaded)
 
 
