@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#11100e" />
+    <meta name="description" content="Stupidify browser demo: deliberately make a language model worse without training." />
+    <title>Stupidify — Browser Lab</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <a class="brand" href="https://github.com/Minuteandone/Stupidify">Stupidify <span>🧠🔨</span></a>
+          <p class="tagline">Make a model worse on purpose. No training. Questionable judgment.</p>
+        </div>
+        <a class="github-link" href="https://github.com/Minuteandone/Stupidify">GitHub ↗</a>
+      </header>
+
+      <section class="hero">
+        <div>
+          <h1>Browser model damage lab</h1>
+          <p>
+            This GitHub Pages build runs a Transformers.js language model directly in your browser, then damages its
+            logits during generation so you can compare normal and stupidified output side by side.
+          </p>
+        </div>
+        <div class="badge-row" aria-label="Demo properties">
+          <span>static site</span><span>no server required</span><span>WebGPU / WASM</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="controls panel">
+          <h2>Damage controls</h2>
+
+          <label>
+            <span>Model</span>
+            <select id="model">
+              <option value="Xenova/distilgpt2">DistilGPT-2 — sensible default</option>
+              <option value="Xenova/gpt2">GPT-2 124M — heavier</option>
+              <option value="onnx-community/gpt2-xl-ONNX">GPT-2 XL 1.5B — extremely heavy</option>
+            </select>
+          </label>
+          <p id="modelWarning" class="warning hidden"></p>
+
+          <label>
+            <span>Runtime</span>
+            <select id="runtime">
+              <option value="auto">Auto</option>
+              <option value="webgpu">WebGPU</option>
+              <option value="wasm">WASM / CPU</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Damage method</span>
+            <select id="method">
+              <option value="goblin">Goblin mode</option>
+              <option value="zero">Random zeroing</option>
+              <option value="noise">Noise</option>
+              <option value="signflip">Sign flips</option>
+              <option value="bitcrush">Bitcrush</option>
+            </select>
+          </label>
+
+          <label class="range-row">
+            <span>Severity <output id="severityValue">0.12</output></span>
+            <input id="severity" type="range" min="0" max="0.75" step="0.01" value="0.12" />
+          </label>
+
+          <label class="range-row">
+            <span>Bit depth <output id="bitsValue">4</output></span>
+            <input id="bits" type="range" min="2" max="8" step="1" value="4" />
+          </label>
+
+          <div class="two-col">
+            <label>
+              <span>Seed</span>
+              <input id="seed" type="number" value="42" step="1" />
+            </label>
+            <label>
+              <span>New tokens</span>
+              <input id="tokens" type="number" value="48" min="1" max="128" step="1" />
+            </label>
+          </div>
+
+          <button id="run" class="primary">Load & compare</button>
+          <button id="unload" class="secondary" disabled>Unload model</button>
+
+          <div class="status-box" aria-live="polite">
+            <div class="status-line"><span class="status-dot" id="statusDot"></span><strong id="status">Idle</strong></div>
+            <div id="progressText">Model is not loaded.</div>
+            <progress id="progress" max="100" value="0"></progress>
+          </div>
+        </aside>
+
+        <section class="experiment panel">
+          <div class="prompt-head">
+            <h2>Prompt</h2>
+            <button id="randomPrompt" class="text-button">random prompt</button>
+          </div>
+          <textarea id="prompt" rows="5">Once upon a time, a very small computer tried to use Windows and</textarea>
+
+          <div class="outputs">
+            <article>
+              <div class="output-title"><span>Baseline</span><small>undamaged logits</small></div>
+              <pre id="baseline">Run the experiment to generate a baseline.</pre>
+            </article>
+            <article>
+              <div class="output-title"><span>Stupidified</span><small id="recipeLabel">goblin · 0.12 · 4-bit</small></div>
+              <pre id="damaged">Then we make it worse.</pre>
+            </article>
+          </div>
+
+          <div class="notes">
+            <strong>What is being damaged?</strong>
+            <p>
+              GitHub Pages cannot execute the Python checkpoint surgery engine, so this demo applies deterministic
+              damage to token logits during generation. The desktop/CLI tool modifies actual safetensors weights.
+            </p>
+          </div>
+        </section>
+      </section>
+
+      <footer>
+        <span>Stupidify browser demo</span>
+        <span>Model files are fetched from Hugging Face and cached by your browser when possible.</span>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
