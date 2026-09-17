@@ -17,7 +17,8 @@ It copies a model checkpoint and applies controlled damage directly to floating-
 - Deterministic seeds, include/exclude filters, and conservative defaults that protect embeddings, norms, and biases.
 - A **Windows desktop GUI** built with Tkinter.
 - A **Linux-friendly CLI** for headless machines and agents.
-- A local **Gradio GPT-2 XL comparison demo**.
+- A local **Gradio GPT-2 XL comparison demo** that damages the loaded model in memory.
+- A static **GitHub Pages browser lab** using Transformers.js and inference-time logit damage.
 
 ## Install
 
@@ -25,7 +26,7 @@ It copies a model checkpoint and applies controlled damage directly to floating-
 pip install -e .
 ```
 
-For the GPT-2 XL web demo:
+For the local GPT-2 XL Gradio demo:
 
 ```bash
 pip install -e ".[web]"
@@ -85,7 +86,7 @@ stupidify mutate MODEL OUTPUT [options]
 
 This is intentionally friendly to automation: add `--json` to get machine-readable final stats.
 
-## GPT-2 XL web demo
+## Local GPT-2 XL Gradio demo
 
 ```bash
 pip install -e ".[web]"
@@ -94,7 +95,27 @@ stupidify-web
 
 Open the local Gradio URL. The demo uses `openai-community/gpt2-xl` by default, generates the baseline, **mutates that same loaded model in memory**, then generates again. It does not need to write a second 1.5B-parameter checkpoint just for the comparison.
 
-**GPT-2 XL is about 1.5B parameters and is not a tiny browser model.** The web UI is a local/server-side demo, not JavaScript running the model in your browser. You still need enough RAM to load GPT-2 XL. For Linux servers, set `STUPIDIFY_HOST=0.0.0.0` and optionally `STUPIDIFY_PORT=7860`. For testing the UI with a smaller compatible model, set `STUPIDIFY_DEMO_MODEL` before launch.
+GPT-2 XL is about 1.5B parameters, so this local demo still needs enough RAM to load it. For Linux servers, set `STUPIDIFY_HOST=0.0.0.0` and optionally `STUPIDIFY_PORT=7860`. For testing the UI with a smaller compatible model, set `STUPIDIFY_DEMO_MODEL` before launch.
+
+## GitHub Pages browser demo
+
+The static browser lab lives in `web/` and is designed to deploy at:
+
+`https://minuteandone.github.io/Stupidify/`
+
+It uses Transformers.js, so inference runs directly in the visitor's browser with WebGPU when available and WASM otherwise. The default model is DistilGPT-2 because it is much more reasonable for a static site. GPT-2 and an ONNX GPT-2 XL option are also available; the UI warns before using GPT-2 XL because it is extremely heavy for a browser.
+
+The Pages demo does **inference-time logit damage**, not checkpoint rewriting. It can zero, perturb, sign-flip, bitcrush, or Goblin-mangle the logits during generation. The Python CLI/GUI remains the tool for actual safetensors weight mutation.
+
+To run the Pages app locally:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Deployment is handled by `.github/workflows/pages.yml`. If Pages has never been enabled for the repository, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** once. After that, pushes touching `web/` redeploy automatically.
 
 ## How Stupidify avoids eating your real model
 
