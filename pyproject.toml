@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stupidify"
+version = "0.1.0"
+description = "Deliberately degrade Hugging Face safetensors checkpoints without training."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Minuteandone"}]
+dependencies = [
+  "torch>=2.2",
+  "safetensors>=0.4",
+  "huggingface_hub>=0.25",
+]
+
+[project.optional-dependencies]
+web = [
+  "gradio>=5",
+  "transformers>=4.46",
+]
+dev = [
+  "pytest>=8",
+]
+
+[project.scripts]
+stupidify = "stupidify.cli:main"
+stupidify-gui = "stupidify.gui:main"
+stupidify-web = "stupidify.web_demo:main"
+
+[tool.setuptools.packages.find]
+include = ["stupidify*"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
